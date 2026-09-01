@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -44,36 +44,36 @@
   <div id="today" class="date"></div>
 
   <div class="progress-wrap"><div id="progress" class="progress"></div></div>
-  <div id="progressText" class="progress-text">Progreso: 0%</div>
+  <div id="progressText" class="progress-text">Progress: 0%</div>
 
-  <button class="missing" onclick="addMissing()">🚨 Registrar material faltante</button>
+  <button class="missing" onclick="addMissing()">🚨 Report missing supplies</button>
 
   <div class="tabs" id="tabs"></div>
   <div id="zoneContent"></div>
 
   <div class="card">
-    <h2>♻️ Táperes reutilizables</h2>
-    <div class="sub">Dos rondas diarias en todas las cocinas: después de las 10:00 y después de las 14:00.</div>
+    <h2>♻️ Reusable containers</h2>
+    <div class="sub">Two daily rounds in every kitchen: after 10:00 and after 14:00.</div>
     <div id="tapers"></div>
   </div>
 
   <div id="fridayCard" class="card hidden">
-    <h2>📦 Reposición de viernes <span class="badge">VIERNES</span></h2>
-    <div class="sub">Cavas y baños.</div>
+    <h2>📦 Friday restocking <span class="badge">FRIDAY</span></h2>
+    <div class="sub">Supply cupboards and bathrooms.</div>
     <div id="fridayTasks"></div>
   </div>
 
   <div class="card">
-    <h2>🕒 Historial de hoy</h2>
+    <h2>🕒 Today’s history</h2>
     <div id="history"></div>
   </div>
 
   <div class="card">
-    <h2>🚨 Material faltante</h2>
-    <div id="missingList">Sin faltantes registrados.</div>
+    <h2>🚨 Missing supplies</h2>
+    <div id="missingList">No missing supplies reported.</div>
   </div>
 
-  <div class="footer">Los datos se guardan en este dispositivo.</div>
+  <div class="footer">Data is saved on this device.</div>
 </div>
 
 <script>
@@ -86,30 +86,30 @@ const zones = [
 ];
 
 const kitchenItems = [
-  "Café","Té","Chocolate","Azúcar","Leche normal","Leche de avena",
-  "Lavavajillas","Papeleras","Productos de limpieza",
-  "Recipientes de comida","Vasos","Tazas"
+  "Coffee","Tea","Hot chocolate","Sugar","Regular milk","Oat milk",
+  "Dishwasher supplies","Bins","Cleaning supplies",
+  "Food containers","Glasses","Mugs"
 ];
 
 const bathroomItems = [
-  "Cava / armario","Ambientador","Papel higiénico","Jabón de manos",
-  "Jabón corporal","Champú","Tampones","Toallas higiénicas","Producto químico"
+  "Supply cupboard","Air freshener","Toilet paper","Hand soap",
+  "Body wash","Shampoo","Tampons","Sanitary pads","Cleaning chemical"
 ];
 
 const fridayCave = [
-  "Paños rojos","Paños azules","Líquido para sanitarios","Viakal",
-  "Mopas rojas","Mopas verdes o azules","Repuesto flat mop",
-  "Balde rojo","Balde negro/verde","Papel de baño"
+  "Red cloths","Blue cloths","Toilet cleaner","Viakal",
+  "Red mops","Green or blue mops","Flat mop refill",
+  "Red bucket","Black/green bucket","Toilet paper"
 ];
 
 const fridayBath = [
-  "Jabón de manos","Toallas higiénicas","Tampones","Jabón corporal","Champú"
+  "Hand soap","Sanitary pads","Tampons","Body wash","Shampoo"
 ];
 
 const d = new Date();
 const dateKey = d.toISOString().slice(0,10);
 const isFriday = d.getDay() === 5;
-document.getElementById("today").textContent = d.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+document.getElementById("today").textContent = d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
 
 let currentZone = 0;
 const key = s => `porter-v2-${dateKey}-${s}`;
@@ -130,12 +130,12 @@ function taskList(items, prefix){
 }
 function renderZone(){
   const z=zones[currentZone];
-  let html = `<div class="card"><h2>📍 ${z.name}</h2><div class="sub">Marca lo revisado y guarda la revisión para registrar la hora.</div></div>`;
+  let html = `<div class="card"><h2>📍 ${z.name}</h2><div class="sub">Tick each checked item, then save the inspection to record the time.</div></div>`;
   if(z.kitchen){
-    html += `<div class="card"><h2>🍽️ Cocina</h2>${taskList(kitchenItems,`${z.name}-kitchen`)}<button class="save" onclick="saveReview('${z.name}','Cocina','${z.name}-kitchen')">Guardar revisión de cocina</button></div>`;
+    html += `<div class="card"><h2>🍽️ Kitchen</h2>${taskList(kitchenItems,`${z.name}-kitchen`)}<button class="save" onclick="saveReview('${z.name}','Kitchen','${z.name}-kitchen')">Save kitchen inspection</button></div>`;
   }
   if(z.bathroom){
-    html += `<div class="card"><h2>🚻 Baños</h2>${taskList(bathroomItems,`${z.name}-bath`)}<button class="save" onclick="saveReview('${z.name}','Baños','${z.name}-bath')">Guardar revisión de baños</button></div>`;
+    html += `<div class="card"><h2>🚻 Bathrooms</h2>${taskList(bathroomItems,`${z.name}-bath`)}<button class="save" onclick="saveReview('${z.name}','Bathrooms','${z.name}-bath')">Save bathroom inspection</button></div>`;
   }
   zoneContent.innerHTML=html;
   bindChecks();
@@ -155,36 +155,36 @@ function bindChecks(){
 
 function saveReview(zone,type,prefix){
   const state=getJSON(key(prefix),{});
-  const items = type==="Cocina" ? kitchenItems : bathroomItems;
+  const items = type==="Kitchen" ? kitchenItems : bathroomItems;
   const checked=items.filter((_,i)=>state[i]);
   const now=new Date();
   const history=getJSON(key("history"),[]);
   history.unshift({
     zone,type,
-    time:now.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}),
+    time:now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}),
     checked:checked.length,total:items.length
   });
   setJSON(key("history"),history);
   renderHistory();
-  alert(`Revisión guardada: ${zone} - ${type}`);
+  alert(`Inspection saved: ${zone} - ${type}`);
 }
 
 function renderHistory(){
   const h=getJSON(key("history"),[]);
-  history.innerHTML = h.length ? h.map(x=>`<div class="review"><strong>${x.time}</strong> · ${x.zone} · ${x.type} · ${x.checked}/${x.total}</div>`).join("") : "Todavía no has guardado revisiones hoy.";
+  history.innerHTML = h.length ? h.map(x=>`<div class="review"><strong>${x.time}</strong> · ${x.zone} · ${x.type} · ${x.checked}/${x.total}</div>`).join("") : "No inspections have been saved today.";
 }
 
 function addMissing(){
-  const x=prompt("¿Qué material falta?\\nEjemplo: Leche de avena - Tower 3");
+  const x=prompt("What supplies are missing?\\nExample: Oat milk - Tower 3");
   if(!x || !x.trim()) return;
   const list=getJSON(key("missing"),[]);
-  list.unshift({text:x.trim(),time:new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})});
+  list.unshift({text:x.trim(),time:new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})});
   setJSON(key("missing"),list);
   renderMissing();
 }
 function renderMissing(){
   const list=getJSON(key("missing"),[]);
-  missingList.innerHTML=list.length?list.map((x,i)=>`<div class="review"><strong>${x.time}</strong> · ${x.text} <button onclick="removeMissing(${i})">Quitar</button></div>`).join(""):"Sin faltantes registrados.";
+  missingList.innerHTML=list.length?list.map((x,i)=>`<div class="review"><strong>${x.time}</strong> · ${x.text} <button onclick="removeMissing(${i})">Remove</button></div>`).join(""):"No missing supplies reported.";
 }
 function removeMissing(i){
   const list=getJSON(key("missing"),[]); list.splice(i,1); setJSON(key("missing"),list); renderMissing();
@@ -212,10 +212,10 @@ function toggleTaper(k){
 function renderFriday(){
   if(!isFriday) return;
   fridayCard.classList.remove("hidden");
-  let html="<h3>🧹 Cavas 1 y 2</h3>";
-  for(let c=1;c<=2;c++) html+=`<strong>Cava ${c}</strong>${taskList(fridayCave,`friday-cave-${c}`)}`;
-  html+="<h3>🚻 Baños 1–4</h3>";
-  for(let b=1;b<=4;b++) html+=`<strong>Baño ${b}</strong>${taskList(fridayBath,`friday-bath-${b}`)}`;
+  let html="<h3>🧹 Supply cupboards 1 and 2</h3>";
+  for(let c=1;c<=2;c++) html+=`<strong>Supply cupboard ${c}</strong>${taskList(fridayCave,`friday-cave-${c}`)}`;
+  html+="<h3>🚻 Bathrooms 1–4</h3>";
+  for(let b=1;b<=4;b++) html+=`<strong>Bathroom ${b}</strong>${taskList(fridayBath,`friday-bath-${b}`)}`;
   fridayTasks.innerHTML=html;
   bindChecks();
 }
@@ -235,7 +235,7 @@ function updateProgress(){
   }
   const pct=total?Math.round(done/total*100):0;
   progress.style.width=pct+"%";
-  progressText.textContent=`Progreso de hoy: ${pct}% (${done}/${total})`;
+  progressText.textContent=`Today’s progress: ${pct}% (${done}/${total})`;
 }
 
 renderTabs(); renderZone(); renderTapers(); renderFriday(); renderHistory(); renderMissing(); updateProgress();
@@ -246,3 +246,5 @@ if("serviceWorker" in navigator){
 </script>
 </body>
 </html>
+
+

@@ -1,129 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#111827">
-  <link rel="manifest" href="manifest.json">
-  <title>Porter Control</title>
-  <style>
-    :root{--bg:#f4f6f8;--card:#fff;--text:#1f2937;--muted:#6b7280;--border:#e5e7eb;--ok:#16a34a;--warn:#dc2626;--accent:#111827}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .app{max-width:760px;margin:auto;padding:16px 16px 42px}
-    h1{margin:0 0 4px;font-size:28px}.date{color:var(--muted);margin-bottom:12px}
-    .tabs{display:flex;gap:8px;overflow:auto;padding-bottom:8px;margin-bottom:12px}
-    .tab{border:1px solid var(--border);background:white;padding:10px 12px;border-radius:999px;white-space:nowrap;font-weight:700}
-    .tab.active{background:var(--accent);color:white}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
-    .card h2{font-size:18px;margin:0 0 10px}
-    .sub{font-size:13px;color:var(--muted);margin-top:-4px;margin-bottom:10px}
-    label{display:flex;gap:10px;align-items:center;padding:8px 0;font-size:16px}
-    input[type=checkbox]{width:22px;height:22px}
-    .save{width:100%;padding:13px;border:0;border-radius:12px;background:var(--ok);color:white;font-weight:800;font-size:16px;margin-top:8px}
-    .missing{width:100%;padding:13px;border:0;border-radius:12px;background:var(--warn);color:white;font-weight:800;font-size:16px;margin-bottom:14px}
-    .progress-wrap{height:13px;background:#e5e7eb;border-radius:999px;overflow:hidden}.progress{height:100%;background:var(--ok);width:0}
-    .progress-text{color:var(--muted);font-size:13px;margin:5px 0 15px}.hidden{display:none}
-    .review{padding:8px 0;border-top:1px solid var(--border);font-size:14px}.review:first-child{border-top:none}
-    .badge{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:3px 8px;font-size:12px;margin-left:5px}
-    .round-row{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border)}
-    .round-row:first-child{border-top:none}.round-btn{border:0;background:var(--ok);color:#fff;padding:10px 12px;border-radius:10px;font-weight:800}
-    .round-times{font-size:12px;color:var(--muted);margin-top:3px}.footer{text-align:center;color:var(--muted);font-size:12px;padding-top:10px}
-  </style>
-</head>
-<body>
-<div class="app">
-  <h1>🧹 Porter Control</h1>
-  <div id="today" class="date"></div>
-  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
-  <div id="progressText" class="progress-text">Progress: 0%</div>
-  <button class="missing" onclick="addMissing()">🚨 Report missing supplies</button>
-  <div class="tabs" id="tabs"></div>
-  <div id="zoneContent"></div>
-
-  <div class="card">
-    <h2>♻️ Reusable containers</h2>
-    <div class="sub">Flexible rounds throughout your 10:00–18:00 shift. Tap “Complete round” whenever you check a kitchen.</div>
-    <div id="rounds"></div>
-  </div>
-
-  <div id="fridayCard" class="card hidden">
-    <h2>📦 Friday restocking <span class="badge">FRIDAY</span></h2>
-    <div class="sub">Supply cupboards and bathrooms.</div>
-    <div id="fridayTasks"></div>
-  </div>
-
-  <div class="card"><h2>🕒 Today’s history</h2><div id="history"></div></div>
-  <div class="card"><h2>🚨 Missing supplies</h2><div id="missingList">No missing supplies reported.</div></div>
-  <div class="footer">Data is saved on this device.</div>
-</div>
-
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f7f8fa"><link rel="manifest" href="manifest.json"><title>Porter Control</title><style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--green:#16a34a;--red:#e52424;--blue:#1570ef}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}.app{max-width:720px;margin:auto;padding:18px 16px 42px}h1{font-size:30px;margin:0 0 4px}.date,.muted{color:var(--muted)}.progress-wrap{height:12px;background:#e6e8ec;border-radius:20px;overflow:hidden;margin-top:18px}.progress{height:100%;background:var(--green);width:0}.progress-text{color:var(--muted);margin:7px 0 18px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 1px 2px #00000008}.card h2{margin:0 0 8px;font-size:20px}.missing{width:100%;border:0;border-radius:13px;padding:15px;background:var(--red);color:#fff;font-weight:800;font-size:17px;margin-bottom:16px}.shift{display:flex;gap:14px;align-items:flex-start}.shift-icon{font-size:38px}.shift strong{font-size:17px}.round-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 0;border-top:1px solid var(--line)}.round-row:first-of-type{border-top:0}.round-name{font-size:18px;font-weight:800}.round-meta{font-size:13px;color:var(--muted);margin-top:2px}.round-count{color:var(--green);font-weight:700}.round-btn,.save{border:0;border-radius:12px;background:var(--green);color:#fff;font-weight:800;padding:12px 14px;font-size:15px}.tabs{display:flex;gap:8px;overflow:auto;padding:2px 0 12px}.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 13px;font-weight:750;white-space:nowrap}.tab.active{background:#172033;color:#fff}.zone-head{display:flex;justify-content:space-between;align-items:center}.zone-head h2{margin:0}.section-title{font-size:18px;font-weight:800;margin-bottom:8px}label{display:flex;gap:10px;align-items:center;padding:8px 0;font-size:16px}input[type=checkbox]{width:22px;height:22px;accent-color:var(--green)}.save{width:100%;margin-top:10px}.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.quick{border:1px solid var(--line);border-radius:15px;padding:14px;background:#fff}.quick strong{display:block;margin-bottom:4px}.quick span{font-size:13px;color:var(--muted)}.review{padding:10px 0;border-top:1px solid var(--line);font-size:14px}.review:first-child{border-top:0}.history-title{display:flex;align-items:center;justify-content:space-between}.badge{font-size:12px;background:#ecfdf3;color:#067647;border-radius:999px;padding:4px 8px}.hidden{display:none}.footer{text-align:center;color:var(--muted);font-size:12px;padding:10px}.remove{float:right;border:0;background:#fee4e2;color:#b42318;border-radius:7px;padding:4px 7px}@media(max-width:430px){.app{padding:14px 12px 36px}h1{font-size:28px}.quick-grid{grid-template-columns:1fr 1fr}.round-btn{padding:11px 12px}}
+</style></head><body><div class="app">
+<h1>🧹 Porter Control</h1><div id="today" class="date"></div><div class="progress-wrap"><div id="progress" class="progress"></div></div><div id="progressText" class="progress-text"></div>
+<button class="missing" onclick="addMissing()">⚠️ Report missing supplies</button>
+<div class="card shift"><div class="shift-icon">🕙</div><div><strong>Your shift</strong><div style="font-size:20px">10:00 – 18:00</div><div class="muted">Flexible rounds throughout your shift. Complete a round whenever you finish checking an area.</div></div></div>
+<div class="card"><h2>🔄 Daily Rounds</h2><div class="muted" style="margin-bottom:6px">Make as many rounds as you need. Each round is recorded with the time.</div><div id="rounds"></div></div>
+<div class="card"><h2>📋 What to check on every round</h2><div class="quick-grid"><div class="quick"><strong>🍴 Kitchens</strong><span>Food, drinks, milk, cleaning supplies, containers.</span></div><div class="quick"><strong>🚻 Bathrooms</strong><span>Toilet paper, soap, shampoo, sanitary supplies.</span></div><div class="quick"><strong>♻️ Reusable containers</strong><span>Check and report missing or damaged containers.</span></div><div class="quick"><strong>📝 Other areas</strong><span>Report anything unusual or needing attention.</span></div></div></div>
+<div class="tabs" id="tabs"></div><div id="zoneContent"></div>
+<div id="fridayCard" class="card hidden"><h2>📦 Friday restocking <span class="badge">FRIDAY</span></h2><div id="fridayTasks"></div></div>
+<div class="card"><div class="history-title"><h2>🕒 Today’s history</h2><span class="badge" id="historyCount">0 records</span></div><div id="history"></div></div>
+<div class="card"><h2>⚠️ Missing supplies</h2><div id="missingList"></div></div><div class="footer">Data is saved on this device.</div></div>
 <script>
-const zones=[
-  {name:"Production",kitchen:true,bathroom:true},
-  {name:"Streaming",kitchen:true,bathroom:true},
-  {name:"Tower 4",kitchen:true,bathroom:true},
-  {name:"Tower 3",kitchen:true,bathroom:true},
-  {name:"Tower 2",kitchen:true,bathroom:false}
-];
-const kitchenItems=["Coffee","Tea","Hot chocolate","Sugar","Regular milk","Oat milk","Dishwasher supplies","Bins","Cleaning supplies","Food containers","Glasses","Mugs"];
-const bathroomItems=["Supply cupboard","Air freshener","Toilet paper","Hand soap","Body wash","Shampoo","Tampons","Sanitary pads","Cleaning chemical"];
-const fridayCave=["Red cloths","Blue cloths","Toilet cleaner","Viakal","Red mops","Green or blue mops","Flat mop refill","Red bucket","Black/green bucket","Toilet paper"];
-const fridayBath=["Hand soap","Sanitary pads","Tampons","Body wash","Shampoo"];
-
-const d=new Date();
-const dateKey=d.toISOString().slice(0,10);
-const isFriday=d.getDay()===5;
-document.getElementById("today").textContent=d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-let currentZone=0;
-const key=s=>`porter-v3-${dateKey}-${s}`;
-function getJSON(k,fallback){try{return JSON.parse(localStorage.getItem(k))??fallback}catch{return fallback}}
-function setJSON(k,v){localStorage.setItem(k,JSON.stringify(v))}
-
-function renderTabs(){tabs.innerHTML=zones.map((z,i)=>`<button class="tab ${i===currentZone?'active':''}" onclick="selectZone(${i})">${z.name}</button>`).join("")}
-function selectZone(i){currentZone=i;renderTabs();renderZone()}
-function taskList(items,prefix){const state=getJSON(key(prefix),{});return items.map((x,i)=>`<label><input type="checkbox" class="taskbox" data-key="${prefix}" data-id="${i}" ${state[i]?'checked':''}> ${x}</label>`).join("")}
-
-function renderZone(){
-  const z=zones[currentZone];
-  let html=`<div class="card"><h2>📍 ${z.name}</h2><div class="sub">Tick each checked item, then save the inspection to record the time.</div></div>`;
-  if(z.kitchen) html+=`<div class="card"><h2>🍽️ Kitchen</h2>${taskList(kitchenItems,`${z.name}-kitchen`)}<button class="save" onclick="saveReview('${z.name}','Kitchen','${z.name}-kitchen')">Save kitchen inspection</button></div>`;
-  if(z.bathroom) html+=`<div class="card"><h2>🚻 Bathrooms</h2>${taskList(bathroomItems,`${z.name}-bath`)}<button class="save" onclick="saveReview('${z.name}','Bathrooms','${z.name}-bath')">Save bathroom inspection</button></div>`;
-  zoneContent.innerHTML=html;bindChecks();updateProgress();
-}
-function bindChecks(){document.querySelectorAll(".taskbox").forEach(cb=>cb.addEventListener("change",()=>{const st=getJSON(key(cb.dataset.key),{});st[cb.dataset.id]=cb.checked;setJSON(key(cb.dataset.key),st);updateProgress()}))}
-
-function saveReview(zone,type,prefix){
-  const state=getJSON(key(prefix),{});const items=type==="Kitchen"?kitchenItems:bathroomItems;const checked=items.filter((_,i)=>state[i]);const now=new Date();
-  const h=getJSON(key("history"),[]);h.unshift({zone,type,time:now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}),checked:checked.length,total:items.length});setJSON(key("history"),h);renderHistory();alert(`Inspection saved: ${zone} - ${type}`)
-}
-function renderHistory(){const h=getJSON(key("history"),[]);history.innerHTML=h.length?h.map(x=>`<div class="review"><strong>${x.time}</strong> · ${x.zone} · ${x.type}${x.total?` · ${x.checked}/${x.total}`:''}</div>`).join(""):"No inspections have been saved today."}
-
-function addRound(zone){
-  const now=new Date();const time=now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
-  const list=getJSON(key(`rounds-${zone}`),[]);list.unshift(time);setJSON(key(`rounds-${zone}`),list);
-  const h=getJSON(key("history"),[]);h.unshift({zone,type:"Reusable containers round",time});setJSON(key("history"),h);
-  renderRounds();renderHistory();
-}
-function renderRounds(){
-  rounds.innerHTML=zones.filter(z=>z.kitchen).map(z=>{const list=getJSON(key(`rounds-${z.name}`),[]);const times=list.length?list.join(" · "):"No rounds yet";return `<div class="round-row"><div><strong>${z.name}</strong><div class="round-times">${times}</div></div><button class="round-btn" onclick="addRound('${z.name}')">Complete round</button></div>`}).join("");
-}
-
-function addMissing(){const x=prompt("What supplies are missing?\nExample: Oat milk - Tower 3");if(!x||!x.trim())return;const list=getJSON(key("missing"),[]);list.unshift({text:x.trim(),time:new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})});setJSON(key("missing"),list);renderMissing()}
-function renderMissing(){const list=getJSON(key("missing"),[]);missingList.innerHTML=list.length?list.map((x,i)=>`<div class="review"><strong>${x.time}</strong> · ${x.text} <button onclick="removeMissing(${i})">Remove</button></div>`).join(""):"No missing supplies reported."}
-function removeMissing(i){const list=getJSON(key("missing"),[]);list.splice(i,1);setJSON(key("missing"),list);renderMissing()}
-
-function renderFriday(){if(!isFriday)return;fridayCard.classList.remove("hidden");let html="<h3>🧹 Supply cupboards 1 and 2</h3>";for(let c=1;c<=2;c++)html+=`<strong>Supply cupboard ${c}</strong>${taskList(fridayCave,`friday-cave-${c}`)}`;html+="<h3>🚻 Bathrooms 1–4</h3>";for(let b=1;b<=4;b++)html+=`<strong>Bathroom ${b}</strong>${taskList(fridayBath,`friday-bath-${b}`)}`;fridayTasks.innerHTML=html;bindChecks()}
-
-function updateProgress(){
-  let total=0,done=0;
-  zones.forEach(z=>{if(z.kitchen){const st=getJSON(key(`${z.name}-kitchen`),{});total+=kitchenItems.length;done+=Object.values(st).filter(Boolean).length}if(z.bathroom){const st=getJSON(key(`${z.name}-bath`),{});total+=bathroomItems.length;done+=Object.values(st).filter(Boolean).length}});
-  if(isFriday){for(let c=1;c<=2;c++){const st=getJSON(key(`friday-cave-${c}`),{});total+=fridayCave.length;done+=Object.values(st).filter(Boolean).length}for(let b=1;b<=4;b++){const st=getJSON(key(`friday-bath-${b}`),{});total+=fridayBath.length;done+=Object.values(st).filter(Boolean).length}}
-  const pct=total?Math.round(done/total*100):0;progress.style.width=pct+"%";progressText.textContent=`Today’s progress: ${pct}% (${done}/${total})`;
-}
-
-renderTabs();renderZone();renderRounds();renderFriday();renderHistory();renderMissing();updateProgress();
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js"))}
-</script>
-</body>
-</html>
+const zones=[{name:'Production',kitchen:true,bathroom:true,icon:'👨‍🍳'},{name:'Streaming',kitchen:true,bathroom:true,icon:'▶️'},{name:'Tower 4',kitchen:true,bathroom:true,icon:'🏢'},{name:'Tower 3',kitchen:true,bathroom:true,icon:'🏢'},{name:'Tower 2',kitchen:true,bathroom:false,icon:'🏢'}];
+const kitchenItems=['Coffee','Tea','Hot chocolate','Sugar','Regular milk','Oat milk','Dishwasher supplies','Bins','Cleaning supplies','Food containers','Glasses','Mugs'];const bathroomItems=['Supply cupboard','Air freshener','Toilet paper','Hand soap','Body wash','Shampoo','Tampons','Sanitary pads','Cleaning chemical'];const fridayCave=['Red cloths','Blue cloths','Toilet cleaner','Viakal','Red mops','Green or blue mops','Flat mop refill','Red bucket','Black/green bucket','Toilet paper'];const fridayBath=['Hand soap','Sanitary pads','Tampons','Body wash','Shampoo'];
+const d=new Date(),dateKey=d.toISOString().slice(0,10),isFriday=d.getDay()===5;today.textContent=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});let currentZone=0;const key=s=>`porter-v3-${dateKey}-${s}`;const getJSON=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}},setJSON=(k,v)=>localStorage.setItem(k,JSON.stringify(v)),timeNow=()=>new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+function renderTabs(){tabs.innerHTML=zones.map((z,i)=>`<button class="tab ${i===currentZone?'active':''}" onclick="selectZone(${i})">${z.name}</button>`).join('')}function selectZone(i){currentZone=i;renderTabs();renderZone()}
+function taskList(items,prefix){const s=getJSON(key(prefix),{});return items.map((x,i)=>`<label><input type="checkbox" class="taskbox" data-key="${prefix}" data-id="${i}" ${s[i]?'checked':''}>${x}</label>`).join('')}
+function renderZone(){const z=zones[currentZone];let h=`<div class="card"><div class="zone-head"><h2>📍 ${z.name}</h2><span class="badge">Inspection</span></div><div class="muted">Check items as you go. Save each inspection to record the time.</div></div>`;if(z.kitchen)h+=`<div class="card"><div class="section-title">🍴 Kitchen</div>${taskList(kitchenItems,`${z.name}-kitchen`)}<button class="save" onclick="saveReview('${z.name}','Kitchen','${z.name}-kitchen')">Save kitchen inspection</button></div>`;if(z.bathroom)h+=`<div class="card"><div class="section-title">🚻 Bathrooms</div>${taskList(bathroomItems,`${z.name}-bath`)}<button class="save" onclick="saveReview('${z.name}','Bathrooms','${z.name}-bath')">Save bathroom inspection</button></div>`;zoneContent.innerHTML=h;bindChecks();updateProgress()}
+function bindChecks(){document.querySelectorAll('.taskbox').forEach(cb=>cb.onchange=()=>{const s=getJSON(key(cb.dataset.key),{});s[cb.dataset.id]=cb.checked;setJSON(key(cb.dataset.key),s);updateProgress()})}
+function saveReview(zone,type,prefix){const s=getJSON(key(prefix),{}),items=type==='Kitchen'?kitchenItems:bathroomItems,h=getJSON(key('history'),[]);h.unshift({zone,type,time:timeNow(),checked:items.filter((_,i)=>s[i]).length,total:items.length});setJSON(key('history'),h);renderHistory();alert(`Inspection saved: ${zone} - ${type}`)}
+function addRound(zone){const t=timeNow(),list=getJSON(key(`rounds-${zone}`),[]);list.unshift(t);setJSON(key(`rounds-${zone}`),list);const h=getJSON(key('history'),[]);h.unshift({zone,type:'Round completed',time:t});setJSON(key('history'),h);renderRounds();renderHistory()}
+function renderRounds(){rounds.innerHTML=zones.map(z=>{const l=getJSON(key(`rounds-${z.name}`),[]),last=l[0];return `<div class="round-row"><div><div class="round-name">${z.icon} ${z.name}</div><div class="round-meta">${last?`Last round: ${last}`:'No rounds yet'}</div>${l.length?`<div class="round-count">Today: ${l.length} round${l.length===1?'':'s'}</div>`:''}</div><button class="round-btn" onclick="addRound('${z.name}')">Complete<br>round</button></div>`}).join('')}
+function renderHistory(){const h=getJSON(key('history'),[]);historyCount.textContent=`${h.length} record${h.length===1?'':'s'}`;history.innerHTML=h.length?h.map(x=>`<div class="review"><strong>${x.zone}</strong> <span class="badge">${x.time}</span><div class="muted">${x.type}${x.total?` · ${x.checked}/${x.total}`:''}</div></div>`).join(''):'No rounds or inspections recorded yet today.'}
+function addMissing(){const x=prompt('What supplies are missing?\nExample: Oat milk - Tower 3');if(!x||!x.trim())return;const l=getJSON(key('missing'),[]);l.unshift({text:x.trim(),time:timeNow()});setJSON(key('missing'),l);renderMissing()}
+function renderMissing(){const l=getJSON(key('missing'),[]);missingList.innerHTML=l.length?l.map((x,i)=>`<div class="review"><strong>${x.time}</strong> · ${x.text}<button class="remove" onclick="removeMissing(${i})">Remove</button></div>`).join(''):'No missing supplies reported.'}function removeMissing(i){const l=getJSON(key('missing'),[]);l.splice(i,1);setJSON(key('missing'),l);renderMissing()}
+function renderFriday(){if(!isFriday)return;fridayCard.classList.remove('hidden');let h='<h3>🧹 Supply cupboards 1 and 2</h3>';for(let c=1;c<=2;c++)h+=`<strong>Supply cupboard ${c}</strong>${taskList(fridayCave,`friday-cave-${c}`)};h+='<h3>🚻 Bathrooms 1–4</h3>';for(let b=1;b<=4;b++)h+=`<strong>Bathroom ${b}</strong>${taskList(fridayBath,`friday-bath-${b}`)};fridayTasks.innerHTML=h;bindChecks()}
+function updateProgress(){let total=0,done=0;zones.forEach(z=>{if(z.kitchen){const s=getJSON(key(`${z.name}-kitchen`),{});total+=kitchenItems.length;done+=Object.values(s).filter(Boolean).length}if(z.bathroom){const s=getJSON(key(`${z.name}-bath`),{});total+=bathroomItems.length;done+=Object.values(s).filter(Boolean).length}});if(isFriday){for(let c=1;c<=2;c++){const s=getJSON(key(`friday-cave-${c}`),{});total+=fridayCave.length;done+=Object.values(s).filter(Boolean).length}for(let b=1;b<=4;b++){const s=getJSON(key(`friday-bath-${b}`),{});total+=fridayBath.length;done+=Object.values(s).filter(Boolean).length}}const p=total?Math.round(done/total*100):0;progress.style.width=p+'%';progressText.textContent=`Today’s progress: ${p}% (${done}/${total})`}
+renderTabs();renderZone();renderRounds();renderFriday();renderHistory();renderMissing();updateProgress();if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js'));
+</script></body></html>

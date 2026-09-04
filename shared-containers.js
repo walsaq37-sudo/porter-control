@@ -1,7 +1,8 @@
 (function(){
   let sharedChecks={};
+  const hasSupabase=()=>typeof sbKey==='function'&&!!sbKey();
   async function loadContainerChecks(){
-    if(!window.sbKey||!sbKey())return false;
+    if(!hasSupabase())return false;
     sharedChecks={};
     const start=dateKey+'T00:00:00.000Z',end=dateKey+'T23:59:59.999Z';
     let ok=false;
@@ -19,20 +20,15 @@
   }
   async function saveOnline(slot,completedAt){
     try{
-      await sb('/container_checks',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({member_name:currentPerson,scheduled_time:slot+':00',completed_at:completedAt})});
+      await sb('/daily_rounds',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({member_name:currentPerson,zone:'Reusable Containers',inspection_type:'Container check '+slot,status:'COMPLETED',notes:'Scheduled container check '+slot,completed_at:completedAt})});
       return true;
     }catch(e){
-      try{
-        await sb('/daily_rounds',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({member_name:currentPerson,zone:'Reusable Containers',inspection_type:'Container check '+slot,status:'COMPLETED',notes:'Scheduled container check '+slot,completed_at:completedAt})});
-        return true;
-      }catch(e2){
-        alert('Container check was not saved online: '+e2.message);
-        return false;
-      }
+      alert('Container check was not saved online: '+e.message);
+      return false;
     }
   }
   async function syncLocalChecks(){
-    if(!window.sbKey||!sbKey())return;
+    if(!hasSupabase())return;
     const local=getJSON(key('container-checks-'+currentPerson),{});
     for(const slot of ['10:00','14:00']){
       if(!local[slot]||sharedChecks[slot])continue;
@@ -53,7 +49,7 @@
     if(sharedChecks[slot])return;
     if(local[slot]){await syncLocalChecks();await renderContainerChecks();return;}
     const actual=timeNow(),completedAt=new Date().toISOString();
-    if(window.sbKey&&sbKey()){
+    if(hasSupabase()){
       const saved=await saveOnline(slot,completedAt);if(!saved)return;
     }
     local[slot]=actual;setJSON(k,local);

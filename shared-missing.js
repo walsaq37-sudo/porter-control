@@ -24,6 +24,8 @@
     }
     const l=getJSON(key('missing'),[]);l.unshift(local);setJSON(key('missing'),l);
     await renderMissing();
+    window.dispatchEvent(new CustomEvent('porter:issue-reported',{detail:{member_name:currentPerson,item_name:item.trim(),store_or_zone:(area||'').trim()}}));
+    if(typeof window.renderSupervisorDashboard==='function')window.renderSupervisorDashboard(true);
     alert('Issue reported online · '+currentPerson);
   };
   window.renderMissing=async function(){

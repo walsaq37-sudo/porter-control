@@ -1,5 +1,8 @@
 (function(){
 const defaults={
+ '98':[
+  ['Toilet Cleaner',34],['Dishwasher Q\'sol',53],['Graffiti Remover',5],['Coffee Stain Remover',5],['Washroom Descaler',4],['Hand Wash 5L',6],['Bubblegum Remover 5L',5],['Extract Pro Carpet 5L',5],['Carefree Speed Stripper 5L',2],['Carefree Satin & Care 5L',1],['Bath & Shower 5L',11],['Shampoo 5L',8],['Adhesive Remover',1],['Flicka Large',20],['Cleaning Tablets',28],['Black Floor Stripping Pad',5],['White Floor Stripping Pad',5],['Hand Wash Tower 4 300ml',10],['Airoma',12]
+ ],
  '47':[
   ['Blue mop',200],['Red mop',50],['Large mop',100],['Clear recycling bags',12],['Red general waste bags',15],['Green food waste bags',8],['Gloves size M',29],['Gloves size L',21]
  ],

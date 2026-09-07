@@ -31,7 +31,10 @@
     box.innerHTML=`<h2>👁️ Supervisory view</h2><div class="muted">Shared activity for Walter, Jhomar and Pat.</div><h3>Team today</h3>${summaries}<h3>Open reported issues</h3>${miss}<h3>Recent stock activity</h3>${stock}`;
     box.querySelectorAll('.porter-detail').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();porterDetail(b.dataset.porter)}));
   }
+  window.renderSupervisorDashboard=renderSupervisorDashboard;
   const oldRenderAll=window.renderAll;window.renderAll=function(){oldRenderAll();dashboardBox=null;setTimeout(()=>renderSupervisorDashboard(true),50)};
   const oldChange=window.changePerson;window.changePerson=function(n){oldChange(n);dashboardBox=null;setTimeout(()=>renderSupervisorDashboard(true),100)};
+  window.addEventListener('porter:issue-reported',()=>setTimeout(()=>renderSupervisorDashboard(true),150));
+  setInterval(()=>{if(managers.includes(currentPerson)&&document.visibilityState==='visible')renderSupervisorDashboard(true)},10000);
   setTimeout(()=>renderSupervisorDashboard(true),500);
 })();

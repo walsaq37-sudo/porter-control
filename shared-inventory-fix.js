@@ -9,7 +9,7 @@ const defaults={
  '17':[
   ['Magic sponge',70],['Green scourer',30],['Green sponge with foam',40],['Crystale dishwasher salt',5],['Finish Powerball dishwasher tablets',8],['Finish dishwasher deep cleaner',19],['Viakal',5],['Glass & Stainless Steel Cleaner',1],['Foaming Washroom Descaler',3],['Spot Light Carpet Care',3]
  ],
- underground:[['Semi-skimmed milk',24],['Oat milk',312]]
+ underground:[['Semi-skimmed milk',24],['Oat milk',312],['Coffee',0],['Chocolate',0],['Tea',0],['Brown sugar',0],['White sugar',0],['Instant decaf coffee',0]]
 };
 function keyValue(){try{return typeof sbKey==='function'?sbKey():localStorage.getItem('porter-supabase-key')||''}catch(e){return localStorage.getItem('porter-supabase-key')||''}}
 async function api(path,opt={}){const k=keyValue();if(!k)throw new Error('No shared key');const r=await fetch(SUPABASE_REST+path,Object.assign({},opt,{headers:Object.assign({apikey:k,Authorization:'Bearer '+k,'Content-Type':'application/json'},opt.headers||{})}));if(!r.ok)throw new Error(await r.text());const t=await r.text();return t?JSON.parse(t):null}

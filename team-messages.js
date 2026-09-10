@@ -1,20 +1,46 @@
 (function(){
-  let knownLatest=null,primed=false;
+  let knownLatest=null,primed=false,knownIssue=null,issuesPrimed=false,audioCtx=null;
+  const supervisors=['Renato','Edita','Humberto'];
   function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   function messageBox(){return document.querySelector('#messagesScreen .screen-inner')}
+  function unlockAudio(){
+    try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;if(!audioCtx)audioCtx=new A();if(audioCtx.state==='suspended')audioCtx.resume()}catch(e){}
+  }
+  ['pointerdown','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{once:true,passive:true}));
+  function tone(freq,duration=.18,delay=0,gain=.08){
+    try{unlockAudio();if(!audioCtx||audioCtx.state!=='running')return;const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay;o.connect(g);g.connect(audioCtx.destination);o.frequency.value=freq;g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.start(t);o.stop(t+duration)}catch(e){}
+  }
   function beep(kind='message'){
-    try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const a=new A(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=kind==='issue'?880:660;g.gain.setValueAtTime(.08,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.22);o.start();o.stop(a.currentTime+.22);setTimeout(()=>a.close(),400)}catch(e){}
+    if(kind==='issue'){tone(920,.16,0,.10);tone(720,.18,.22,.10)}
+    else tone(660,.22,0,.08);
+  }
+  async function latestMessages(checkOnly=false){
+    if(!sbKey())return;
+    try{
+      const rows=await sb('/messages?select=*&order=created_at.desc&limit=50');
+      if(!rows||!rows.length){primed=true;return rows||[];}
+      const latest=rows[0],latestId=String(latest.id||latest.created_at||'');
+      if(primed&&knownLatest&&latestId&&latestId!==knownLatest){const sender=latest.member_name||latest.sender_name||latest.sender||latest.name||'Team';if(sender!==currentPerson)beep('message');}
+      knownLatest=latestId;primed=true;return rows;
+    }catch(e){if(!checkOnly)throw e;return null}
+  }
+  async function checkIssues(){
+    if(!sbKey()||!supervisors.includes(currentPerson))return;
+    try{
+      const rows=await sb('/missing_supplies?status=eq.OPEN&select=id,member_name,item_name,reported_at&order=reported_at.desc&limit=1');
+      if(!rows||!rows.length){issuesPrimed=true;return;}
+      const latest=rows[0],id=String(latest.id||latest.reported_at||'');
+      if(issuesPrimed&&knownIssue&&id&&id!==knownIssue){const sender=latest.member_name||'Team';if(sender!==currentPerson)beep('issue');}
+      knownIssue=id;issuesPrimed=true;
+    }catch(e){}
   }
   async function loadMessages(){
     const list=document.getElementById('sharedMessagesList');if(!list)return;
     if(!sbKey()){list.innerHTML='<div class="muted">Shared database is not connected on this device.</div>';return;}
     if(!primed)list.innerHTML='<div class="muted">Loading messages…</div>';
     try{
-      const rows=await sb('/messages?select=*&order=created_at.desc&limit=50');
-      if(!rows||!rows.length){list.innerHTML='<div class="muted">No team messages yet.</div>';primed=true;return;}
-      const latest=rows[0],latestId=String(latest.id||latest.created_at||'');
-      if(primed&&knownLatest&&latestId&&latestId!==knownLatest){const sender=latest.member_name||latest.sender_name||latest.sender||latest.name||'Team';if(sender!==currentPerson)beep('message');}
-      knownLatest=latestId;primed=true;
+      const rows=await latestMessages(false);
+      if(!rows||!rows.length){list.innerHTML='<div class="muted">No team messages yet.</div>';return;}
       list.innerHTML=rows.slice().reverse().map(m=>{
         const sender=m.member_name||m.sender_name||m.sender||m.name||'Team';
         const text=m.message||m.message_text||m.text||m.body||'';
@@ -48,5 +74,10 @@
   }
   const oldOpen=window.openMessages;window.openMessages=function(){if(oldOpen)oldOpen();build();loadMessages();};
   window.addEventListener('porter:issue-reported',()=>beep('issue'));
-  setInterval(()=>{if(!$('messagesScreen').classList.contains('hidden'))loadMessages()},5000);
+  setTimeout(()=>{latestMessages(true);checkIssues()},1500);
+  setInterval(()=>{
+    latestMessages(true);
+    checkIssues();
+    const screen=document.getElementById('messagesScreen');if(screen&&!screen.classList.contains('hidden'))loadMessages();
+  },10000);
 })();

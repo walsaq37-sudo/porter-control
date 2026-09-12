@@ -1,19 +1,24 @@
 (function(){
   let knownLatest=null,primed=false,knownIssue=null,issuesPrimed=false,audioCtx=null;
   const supervisors=['Renato','Edita','Humberto'];
+  const SOUND_KEY='porter-message-sound-enabled';
   function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   function messageBox(){return document.querySelector('#messagesScreen .screen-inner')}
-  function unlockAudio(){
-    try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;if(!audioCtx)audioCtx=new A();if(audioCtx.state==='suspended')audioCtx.resume()}catch(e){}
+  function soundEnabled(){return localStorage.getItem(SOUND_KEY)==='1'}
+  async function unlockAudio(){
+    try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return false;if(!audioCtx)audioCtx=new A();if(audioCtx.state==='suspended')await audioCtx.resume();return audioCtx.state==='running'}catch(e){return false}
   }
-  ['pointerdown','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{once:true,passive:true}));
-  function tone(freq,duration=.18,delay=0,gain=.08){
-    try{unlockAudio();if(!audioCtx||audioCtx.state!=='running')return;const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay;o.connect(g);g.connect(audioCtx.destination);o.frequency.value=freq;g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.start(t);o.stop(t+duration)}catch(e){}
+  async function tone(freq,duration=.18,delay=0,gain=.18){
+    try{if(!(await unlockAudio()))return;const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay;o.connect(g);g.connect(audioCtx.destination);o.type='sine';o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.start(t);o.stop(t+duration)}catch(e){}
   }
-  function beep(kind='message'){
-    if(kind==='issue'){tone(920,.16,0,.10);tone(720,.18,.22,.10)}
-    else tone(660,.22,0,.08);
+  async function beep(kind='message',force=false){
+    if(!force&&!soundEnabled())return;
+    if(kind==='issue'){await tone(980,.16,0,.22);await tone(760,.18,.20,.20)}
+    else{await tone(740,.16,0,.22);await tone(980,.20,.18,.20)}
+    try{if(navigator.vibrate)navigator.vibrate([120,70,120])}catch(e){}
   }
+  function refreshSoundButton(){const b=document.getElementById('messageSoundToggle');if(!b)return;b.textContent=soundEnabled()?'🔊 Message sound ON':'🔇 Enable message sound';b.style.background=soundEnabled()?'#103d2a':'#12385f'}
+  async function toggleSound(){const enabling=!soundEnabled();if(enabling){const ok=await unlockAudio();if(!ok){alert('Sound could not be enabled on this device.');return}localStorage.setItem(SOUND_KEY,'1');refreshSoundButton();await beep('message',true)}else{localStorage.removeItem(SOUND_KEY);refreshSoundButton()}}
   async function latestMessages(checkOnly=false){
     if(!sbKey())return;
     try{
@@ -67,7 +72,14 @@
     input.value='';await loadMessages();
   }
   function build(){
-    const box=messageBox();if(!box||document.getElementById('sharedMessagesList'))return;
+    const box=messageBox();if(!box)return;
+    if(!document.getElementById('messageSoundCard')){
+      const firstCard=box.querySelector('.card');
+      const html=`<div class="card" id="messageSoundCard"><strong>Message alerts</strong><div class="muted" style="margin-top:5px">Turn on sound once on this phone, then leave it enabled.</div><button id="messageSoundToggle" class="back" style="width:100%;margin-top:10px">🔇 Enable message sound</button></div>`;
+      if(firstCard)firstCard.insertAdjacentHTML('afterend',html);else box.insertAdjacentHTML('beforeend',html);
+      document.getElementById('messageSoundToggle').onclick=toggleSound;refreshSoundButton();
+    }
+    if(document.getElementById('sharedMessagesList'))return;
     const old=[...box.querySelectorAll('.card')].find(c=>c.textContent.includes('Shared messaging'));if(old)old.remove();
     box.insertAdjacentHTML('beforeend',`<div class="card"><strong>Shared team chat</strong><div id="sharedMessagesList" style="margin-top:10px"></div></div><div class="card"><textarea id="sharedMessageInput" rows="3" placeholder="Write a message to the team…" style="width:100%;padding:12px;border-radius:12px;background:#071b33;color:#fff;border:1px solid #1d4b78;font:inherit;resize:vertical"></textarea><button id="sharedMessageSend" class="save" style="margin-top:10px">Send message</button></div>`);
     document.getElementById('sharedMessageSend').onclick=sendMessage;

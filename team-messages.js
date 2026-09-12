@@ -5,91 +5,18 @@
   function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   function messageBox(){return document.querySelector('#messagesScreen .screen-inner')}
   function soundEnabled(){return localStorage.getItem(SOUND_KEY)==='1'}
-  async function unlockAudio(){
-    try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return false;if(!audioCtx)audioCtx=new A();if(audioCtx.state==='suspended')await audioCtx.resume();return audioCtx.state==='running'}catch(e){return false}
-  }
-  async function tone(freq,duration=.18,delay=0,gain=.18){
-    try{if(!(await unlockAudio()))return;const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay;o.connect(g);g.connect(audioCtx.destination);o.type='sine';o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.start(t);o.stop(t+duration)}catch(e){}
-  }
-  async function beep(kind='message',force=false){
-    if(!force&&!soundEnabled())return;
-    if(kind==='issue'){await tone(980,.16,0,.22);await tone(760,.18,.20,.20)}
-    else{await tone(740,.16,0,.22);await tone(980,.20,.18,.20)}
-    try{if(navigator.vibrate)navigator.vibrate([120,70,120])}catch(e){}
-  }
+  async function unlockAudio(){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return false;if(!audioCtx)audioCtx=new A();if(audioCtx.state==='suspended')await audioCtx.resume();return audioCtx.state==='running'}catch(e){return false}}
+  function tone(freq,duration,delay,gain,type='sine'){try{if(!audioCtx||audioCtx.state!=='running')return;const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay;o.connect(g);g.connect(audioCtx.destination);o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(gain,t+.025);g.gain.setValueAtTime(gain,t+Math.max(.03,duration-.08));g.gain.exponentialRampToValueAtTime(.001,t+duration);o.start(t);o.stop(t+duration+.02)}catch(e){}}
+  async function beep(kind='message',force=false){if(!force&&!soundEnabled())return;if(!(await unlockAudio()))return;if(kind==='issue'){tone(980,.22,0,.34,'square');tone(760,.24,.28,.30,'square');tone(980,.22,.58,.34,'square');try{if(navigator.vibrate)navigator.vibrate([180,80,180,80,180])}catch(e){}}else{tone(620,.28,0,.32,'triangle');tone(820,.30,.34,.34,'triangle');tone(1040,.36,.70,.36,'triangle');try{if(navigator.vibrate)navigator.vibrate([160,80,160,80,220])}catch(e){}}}
   function refreshSoundButton(){const b=document.getElementById('messageSoundToggle');if(!b)return;b.textContent=soundEnabled()?'🔊 Message sound ON':'🔇 Enable message sound';b.style.background=soundEnabled()?'#103d2a':'#12385f'}
   async function toggleSound(){const enabling=!soundEnabled();if(enabling){const ok=await unlockAudio();if(!ok){alert('Sound could not be enabled on this device.');return}localStorage.setItem(SOUND_KEY,'1');refreshSoundButton();await beep('message',true)}else{localStorage.removeItem(SOUND_KEY);refreshSoundButton()}}
-  async function latestMessages(checkOnly=false){
-    if(!sbKey())return;
-    try{
-      const rows=await sb('/messages?select=*&order=created_at.desc&limit=50');
-      if(!rows||!rows.length){primed=true;return rows||[];}
-      const latest=rows[0],latestId=String(latest.id||latest.created_at||'');
-      if(primed&&knownLatest&&latestId&&latestId!==knownLatest){const sender=latest.member_name||latest.sender_name||latest.sender||latest.name||'Team';if(sender!==currentPerson)beep('message');}
-      knownLatest=latestId;primed=true;return rows;
-    }catch(e){if(!checkOnly)throw e;return null}
-  }
-  async function checkIssues(){
-    if(!sbKey()||!supervisors.includes(currentPerson))return;
-    try{
-      const rows=await sb('/missing_supplies?status=eq.OPEN&select=id,member_name,item_name,reported_at&order=reported_at.desc&limit=1');
-      if(!rows||!rows.length){issuesPrimed=true;return;}
-      const latest=rows[0],id=String(latest.id||latest.reported_at||'');
-      if(issuesPrimed&&knownIssue&&id&&id!==knownIssue){const sender=latest.member_name||'Team';if(sender!==currentPerson)beep('issue');}
-      knownIssue=id;issuesPrimed=true;
-    }catch(e){}
-  }
-  async function loadMessages(){
-    const list=document.getElementById('sharedMessagesList');if(!list)return;
-    if(!sbKey()){list.innerHTML='<div class="muted">Shared database is not connected on this device.</div>';return;}
-    if(!primed)list.innerHTML='<div class="muted">Loading messages…</div>';
-    try{
-      const rows=await latestMessages(false);
-      if(!rows||!rows.length){list.innerHTML='<div class="muted">No team messages yet.</div>';return;}
-      list.innerHTML=rows.slice().reverse().map(m=>{
-        const sender=m.member_name||m.sender_name||m.sender||m.name||'Team';
-        const text=m.message||m.message_text||m.text||m.body||'';
-        const when=m.created_at?new Date(m.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
-        return `<div class="review"><strong>${esc(sender)}</strong><div>${esc(text)}</div><div class="muted">${esc(when)}</div></div>`;
-      }).join('');
-    }catch(e){list.innerHTML='<div class="muted">Could not load team messages: '+esc(e.message)+'</div>';}
-  }
-  async function sendMessage(){
-    const input=document.getElementById('sharedMessageInput'),btn=document.getElementById('sharedMessageSend');
-    const text=(input.value||'').trim();if(!text)return;
-    btn.disabled=true;
-    const candidates=[
-      {member_name:currentPerson,message:text},
-      {sender_name:currentPerson,message:text},
-      {sender:currentPerson,message:text},
-      {member_name:currentPerson,message_text:text},
-      {sender_name:currentPerson,message_text:text}
-    ];
-    let err=null;
-    for(const body of candidates){try{await sb('/messages',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(body)});err=null;break}catch(e){err=e}}
-    btn.disabled=false;
-    if(err){alert('Message was not saved online: '+err.message);return;}
-    input.value='';await loadMessages();
-  }
-  function build(){
-    const box=messageBox();if(!box)return;
-    if(!document.getElementById('messageSoundCard')){
-      const firstCard=box.querySelector('.card');
-      const html=`<div class="card" id="messageSoundCard"><strong>Message alerts</strong><div class="muted" style="margin-top:5px">Turn on sound once on this phone, then leave it enabled.</div><button id="messageSoundToggle" class="back" style="width:100%;margin-top:10px">🔇 Enable message sound</button></div>`;
-      if(firstCard)firstCard.insertAdjacentHTML('afterend',html);else box.insertAdjacentHTML('beforeend',html);
-      document.getElementById('messageSoundToggle').onclick=toggleSound;refreshSoundButton();
-    }
-    if(document.getElementById('sharedMessagesList'))return;
-    const old=[...box.querySelectorAll('.card')].find(c=>c.textContent.includes('Shared messaging'));if(old)old.remove();
-    box.insertAdjacentHTML('beforeend',`<div class="card"><strong>Shared team chat</strong><div id="sharedMessagesList" style="margin-top:10px"></div></div><div class="card"><textarea id="sharedMessageInput" rows="3" placeholder="Write a message to the team…" style="width:100%;padding:12px;border-radius:12px;background:#071b33;color:#fff;border:1px solid #1d4b78;font:inherit;resize:vertical"></textarea><button id="sharedMessageSend" class="save" style="margin-top:10px">Send message</button></div>`);
-    document.getElementById('sharedMessageSend').onclick=sendMessage;
-  }
+  async function latestMessages(checkOnly=false){if(!sbKey())return;try{const rows=await sb('/messages?select=*&order=created_at.desc&limit=50');if(!rows||!rows.length){primed=true;return rows||[];}const latest=rows[0],latestId=String(latest.id||latest.created_at||'');if(primed&&knownLatest&&latestId&&latestId!==knownLatest){const sender=latest.member_name||latest.sender_name||latest.sender||latest.name||'Team';if(sender!==currentPerson)beep('message');}knownLatest=latestId;primed=true;return rows;}catch(e){if(!checkOnly)throw e;return null}}
+  async function checkIssues(){if(!sbKey()||!supervisors.includes(currentPerson))return;try{const rows=await sb('/missing_supplies?status=eq.OPEN&select=id,member_name,item_name,reported_at&order=reported_at.desc&limit=1');if(!rows||!rows.length){issuesPrimed=true;return;}const latest=rows[0],id=String(latest.id||latest.reported_at||'');if(issuesPrimed&&knownIssue&&id&&id!==knownIssue){const sender=latest.member_name||'Team';if(sender!==currentPerson)beep('issue');}knownIssue=id;issuesPrimed=true;}catch(e){}}
+  async function loadMessages(){const list=document.getElementById('sharedMessagesList');if(!list)return;if(!sbKey()){list.innerHTML='<div class="muted">Shared database is not connected on this device.</div>';return;}if(!primed)list.innerHTML='<div class="muted">Loading messages…</div>';try{const rows=await latestMessages(false);if(!rows||!rows.length){list.innerHTML='<div class="muted">No team messages yet.</div>';return;}list.innerHTML=rows.slice().reverse().map(m=>{const sender=m.member_name||m.sender_name||m.sender||m.name||'Team';const text=m.message||m.message_text||m.text||m.body||'';const when=m.created_at?new Date(m.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';return `<div class="review"><strong>${esc(sender)}</strong><div>${esc(text)}</div><div class="muted">${esc(when)}</div></div>`;}).join('');}catch(e){list.innerHTML='<div class="muted">Could not load team messages: '+esc(e.message)+'</div>';}}
+  async function sendMessage(){const input=document.getElementById('sharedMessageInput'),btn=document.getElementById('sharedMessageSend');const text=(input.value||'').trim();if(!text)return;btn.disabled=true;const candidates=[{member_name:currentPerson,message:text},{sender_name:currentPerson,message:text},{sender:currentPerson,message:text},{member_name:currentPerson,message_text:text},{sender_name:currentPerson,message_text:text}];let err=null;for(const body of candidates){try{await sb('/messages',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(body)});err=null;break}catch(e){err=e}}btn.disabled=false;if(err){alert('Message was not saved online: '+err.message);return;}input.value='';await loadMessages();}
+  function build(){const box=messageBox();if(!box)return;if(!document.getElementById('messageSoundCard')){const firstCard=box.querySelector('.card');const html=`<div class="card" id="messageSoundCard"><strong>Message alerts</strong><div class="muted" style="margin-top:5px">Turn on sound once on this phone, then leave it enabled.</div><button id="messageSoundToggle" class="back" style="width:100%;margin-top:10px">🔇 Enable message sound</button></div>`;if(firstCard)firstCard.insertAdjacentHTML('afterend',html);else box.insertAdjacentHTML('beforeend',html);document.getElementById('messageSoundToggle').onclick=toggleSound;refreshSoundButton();}if(document.getElementById('sharedMessagesList'))return;const old=[...box.querySelectorAll('.card')].find(c=>c.textContent.includes('Shared messaging'));if(old)old.remove();box.insertAdjacentHTML('beforeend',`<div class="card"><strong>Shared team chat</strong><div id="sharedMessagesList" style="margin-top:10px"></div></div><div class="card"><textarea id="sharedMessageInput" rows="3" placeholder="Write a message to the team…" style="width:100%;padding:12px;border-radius:12px;background:#071b33;color:#fff;border:1px solid #1d4b78;font:inherit;resize:vertical"></textarea><button id="sharedMessageSend" class="save" style="margin-top:10px">Send message</button></div>`);document.getElementById('sharedMessageSend').onclick=sendMessage;}
   const oldOpen=window.openMessages;window.openMessages=function(){if(oldOpen)oldOpen();build();loadMessages();};
   window.addEventListener('porter:issue-reported',()=>beep('issue'));
   setTimeout(()=>{latestMessages(true);checkIssues()},1500);
-  setInterval(()=>{
-    latestMessages(true);
-    checkIssues();
-    const screen=document.getElementById('messagesScreen');if(screen&&!screen.classList.contains('hidden'))loadMessages();
-  },10000);
+  setInterval(()=>{latestMessages(true);checkIssues();const screen=document.getElementById('messagesScreen');if(screen&&!screen.classList.contains('hidden'))loadMessages();},10000);
 })();

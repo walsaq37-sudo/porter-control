@@ -1,10 +1,10 @@
 (function(){
 const CLEANERS=['Priscila','Nohon','Ariana','Soni'],PORTERS=['Walter','Jhomar','Pat'],VIEWERS=['Edita','Renato'];
+const AREAS=['Production','Streaming','Tower 4','Tower 3','Tower 2','Bity','Medio','Malcon','Facility','Velocity','Technology','Reception'];
 const GROUPS=[
-{name:'Kitchen',icon:'🍴',items:['Microwave','All bins','Chocolate','Centre','Milk','High glass','Cups','Dishwasher','Cupboard under sink']},
-{name:'Toilet',icon:'🚻',items:['Sanitary pads','Tampons','Soap','Bodywash','Shampoo','Cupboard','Cubicle / urinal','Floor','Shower']},
-{name:'Meeting room',icon:'🪑',items:['Carpet','Table','Chairs','Sofas','Whiteboard','Walls','Door','Glass','Dust']},
-{name:'Other',icon:'🧹',items:['Daily set up','Reset','Laundry morning','Laundry afternoon','Cutlery','Under cart check','Material orders','Coffee orders','Canal side checking']}
+{name:'Kitchen',icon:'🍴',items:AREAS},
+{name:'Toilet',icon:'🚻',items:AREAS},
+{name:'Meeting',icon:'🪑',items:AREAS}
 ];
 const today=()=>new Date().toISOString().slice(0,10),K=()=>`porter-supervision-${today()}`;
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}

@@ -31,11 +31,12 @@
     ]);
 
     const rows=[];
-    function roundNotes(r){try{const n=JSON.parse(r.notes||'');if(n&&n.reviewed_by==='Humberto')return {role:n.role||'',text:n.observation||''}}catch(e){}return {role:'',text:r.notes||''}}
+    function roundNotes(r){try{const n=JSON.parse(r.notes||'');if(n&&n.reviewed_by==='Humberto')return {role:n.role||'',text:n.observation||'',humberto:true}}catch(e){}return {role:'',text:r.notes||'',humberto:false}}
     (rounds||[]).forEach(r=>{const n=roundNotes(r);rows.push({
       at:r.completed_at,
       member:r.member_name,
       role:n.role,
+      humberto:n.humberto,
       title:r.inspection_type||'Activity',
       detail:[r.zone,r.status].filter(Boolean).join(' · '),
       notes:n.text
@@ -75,9 +76,6 @@
       return;
     }
 
-    $('allHistory').innerHTML=rows.map(r=>{
-      const dt=fmtDateTime(r.at);
-      return `<div class="time-card"><strong>${esc(dt.date)} · ${esc(dt.time)}</strong><div>${esc(r.member||'')}${r.role?' · '+esc(r.role):''} · ${esc(r.title)}</div><div class="muted">${esc(r.detail)}</div>${r.notes?`<div class="muted" style="margin-top:6px">${esc(r.notes)}</div>`:''}</div>`;
-    }).join('');
+    const humbertoRows=rows.filter(r=>r.humberto),generalRows=rows.filter(r=>!r.humberto);function cards(list){return list.map(r=>{const dt=fmtDateTime(r.at);return `<div class="time-card"><strong>${esc(dt.date)} · ${esc(dt.time)}</strong><div>${esc(r.member||'')}${r.role?' · '+esc(r.role):''} · ${esc(r.title)}</div><div class="muted">${esc(r.detail)}</div>${r.notes?`<div class="muted" style="margin-top:6px">${esc(r.notes)}</div>`:''}</div>`}).join('')} $('allHistory').innerHTML=(humbertoRows.length?`<div class="card"><h2>🔎 Humberto · Supervision</h2>${cards(humbertoRows)}</div>`:'')+(generalRows.length?`<div class="card"><h2>📋 Porter rounds & activity</h2>${cards(generalRows)}</div>`:'');
   };
 })();

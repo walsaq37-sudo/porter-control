@@ -31,13 +31,15 @@
     ]);
 
     const rows=[];
-    (rounds||[]).forEach(r=>rows.push({
+    function roundNotes(r){try{const n=JSON.parse(r.notes||'');if(n&&n.reviewed_by==='Humberto')return {role:n.role||'',text:n.observation||''}}catch(e){}return {role:'',text:r.notes||''}}
+    (rounds||[]).forEach(r=>{const n=roundNotes(r);rows.push({
       at:r.completed_at,
       member:r.member_name,
+      role:n.role,
       title:r.inspection_type||'Activity',
       detail:[r.zone,r.status].filter(Boolean).join(' · '),
-      notes:r.notes||''
-    }));
+      notes:n.text
+    })});
     (moves||[]).forEach(r=>rows.push({
       at:r.created_at,
       member:r.member_name,
@@ -75,7 +77,7 @@
 
     $('allHistory').innerHTML=rows.map(r=>{
       const dt=fmtDateTime(r.at);
-      return `<div class="time-card"><strong>${esc(dt.date)} · ${esc(dt.time)}</strong><div>${esc(r.member||'')} · ${esc(r.title)}</div><div class="muted">${esc(r.detail)}</div>${r.notes?`<div class="muted" style="margin-top:6px">${esc(r.notes)}</div>`:''}</div>`;
+      return `<div class="time-card"><strong>${esc(dt.date)} · ${esc(dt.time)}</strong><div>${esc(r.member||'')}${r.role?' · '+esc(r.role):''} · ${esc(r.title)}</div><div class="muted">${esc(r.detail)}</div>${r.notes?`<div class="muted" style="margin-top:6px">${esc(r.notes)}</div>`:''}</div>`;
     }).join('');
   };
 })();
